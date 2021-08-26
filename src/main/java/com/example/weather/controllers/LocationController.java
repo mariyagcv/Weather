@@ -50,8 +50,13 @@ public class LocationController {
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
+  /**
+   * Creates a location and saves to repository
+   * @param slug A unique url-safe slug passed as a path variable
+   * @param location A request with a location consisting of slug, latitude, and longitude
+   * @throws ResponseStatusException BAD_REQUEST if the latitude and longitude in the body are null
+   */
   public void create(@Valid @RequestBody Location location) {
-    // todo: write test
     if (location.getLatitude() == null || location.getLongitude() == null) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
           "Latitude and longitude cannot be null");
@@ -61,6 +66,13 @@ public class LocationController {
 
   @PutMapping(value = "/{slug}")
   @ResponseStatus(HttpStatus.OK)
+  /**
+   * Updates a location and saves to repository
+   * @param slug A unique url-safe slug passed as a path variable
+   * @param location A request with a location consisting of slug, latitude, and longitude
+   * @throws ResponseStatusException BAD_REQUEST if slug value is different than the existing one
+   * @throws ResponseStatusException NOT_FOUND if the location to update does not exist
+   */
   public void update(@PathVariable("slug") String slug, @Valid @RequestBody Location location) {
     Optional<Location> locationToUpdateOptional = locationRepository.findById(slug);
 
@@ -68,8 +80,7 @@ public class LocationController {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND);
     }
 
-    // todo: test
-    if (location.getSlug() != null && slug != location.getSlug()) {
+    if (location.getSlug() != null && !slug.equals(location.getSlug())) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
           "Location slug cannot be changed");
     }
@@ -88,12 +99,33 @@ public class LocationController {
 
   @DeleteMapping(value = "/{slug}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
+  /**
+   * Deletes a location
+   * @param slug A unique url-safe slug passed as a path variable
+   * @throws ResponseStatusException NOT_FOUND if the location to delete does not exist
+   */
   public void delete(@PathVariable("slug") String slug) {
+    Optional<Location> location = locationRepository.findById(slug);
+
+    if (!location.isPresent()) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+    }
+
     locationRepository.deleteById(slug);
   }
 
   @GetMapping("/{slug}/forecast")
   @ResponseStatus(HttpStatus.OK)
+  /**
+   * Returns a forecast for an existing location within a given range between start and end date.
+   * The forecast returns as information the minimum and maximum temperatures for the dates, for which
+   * the start date should be either today or in the present.
+   * @param slug A unique url-safe slug passed as a path variable
+   * @param startDate A start date for the date range of the forecast
+   * @param endDate An end date for the date range of the forecast
+   * @throws ResponseStatusException BAD_REQUEST if the start date is in the past
+   * @throws ResponseStatusException NOT_FOUND if the location does not exist
+   */
   public List<ForecastDto> getForecastBySlug(@PathVariable("slug") String slug,
       @RequestParam("start_date")
       @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,

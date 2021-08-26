@@ -9,7 +9,6 @@ public class Location {
 
   @Id
   @Pattern(regexp = "^[a-z0-9]+(?:-[a-z0-9]+)*$")
-  // todo: maybe rename to id
   private String slug;
   private Float latitude;
   private Float longitude;
@@ -17,6 +16,13 @@ public class Location {
   public Location() {
   }
 
+  /**
+   * Creates a location with the given latitude and longitude
+   *
+   * @param slug      A unique url-safe slug representing the location
+   * @param latitude  The location latitude as a Float
+   * @param longitude The location longitude as a Float
+   */
   public Location(String slug, Float latitude, Float longitude) {
     this.slug = slug;
     this.latitude = latitude;

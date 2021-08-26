@@ -29,6 +29,14 @@ public class LocationService {
     return forecastDtos;
   }
 
+  /**
+   * Given a range of start and end dates, it filters out the results
+   *
+   * @param forecastDto
+   * @param startDate
+   * @param endDate
+   * @return
+   */
   private boolean filterDtoByDates(ForecastDto forecastDto, LocalDate startDate,
       LocalDate endDate) {
     return (forecastDto.date.equals(startDate) || forecastDto.date.isAfter(startDate))
