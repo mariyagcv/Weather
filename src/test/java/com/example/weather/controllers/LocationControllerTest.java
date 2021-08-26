@@ -2,6 +2,9 @@ package com.example.weather.controllers;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -17,8 +20,10 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -55,7 +60,7 @@ public class LocationControllerTest {
   }
 
   @Test
-  public void shouldReturnEmptyOnGetLocationsWhenNotFound() throws Exception {
+  public void shouldReturnEmptyOnGetLocationsWhenEmpty() throws Exception {
     Mockito.when(locationRepositoryMock.findAll()).thenReturn(new ArrayList<Location>());
 
     this.mockMvc.perform(get("/locations"))
@@ -79,7 +84,7 @@ public class LocationControllerTest {
   public void shouldReturn404WhenLocationNotFound() throws Exception {
     Mockito.when(locationRepositoryMock.findById(anyString())).thenReturn(Optional.empty());
 
-    this.mockMvc.perform(get("/locations/{slug}/", "a-non-existing-slug"))
+    this.mockMvc.perform(get("/locations/{slug}/", "non-existing-slug"))
         .andExpect(status().isNotFound());
   }
 
@@ -100,8 +105,34 @@ public class LocationControllerTest {
   }
 
   @Test
-  public void shouldReturn400WhenCreatingLocationWithInvalidSlug() throws Exception {
+  public void shouldReturnBadRequestWhenCreatingLocationWithInvalidSlug() throws Exception {
     Location location = new Location("invalid%test%slug", 0.2f, -1.2f);
+
+    ObjectMapper objectMapper = new ObjectMapper();
+    String json = objectMapper.writeValueAsString(location);
+
+    this.mockMvc.perform(post("/locations")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(json))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  public void shouldReturnBadRequestWhenCreatingLocationWithoutLatitude() throws Exception {
+    Location location = new Location("test-slug", null, 1f);
+
+    ObjectMapper objectMapper = new ObjectMapper();
+    String json = objectMapper.writeValueAsString(location);
+
+    this.mockMvc.perform(post("/locations")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(json))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  public void shouldReturnBadRequestWhenCreatingLocationWithoutLongitude() throws Exception {
+    Location location = new Location("test-slug", 1f, null);
 
     ObjectMapper objectMapper = new ObjectMapper();
     String json = objectMapper.writeValueAsString(location);
@@ -118,7 +149,7 @@ public class LocationControllerTest {
     Mockito.when(locationRepositoryMock.findById(oldLocation.getSlug()))
         .thenReturn(Optional.of(oldLocation));
 
-    Location updatedLocation = new Location(oldLocation.getSlug(), -5.00f, 6.00f);
+    Location updatedLocation = new Location("test-slug", -5.00f, 6.00f);
 
     ObjectMapper objectMapper = new ObjectMapper();
     String json = objectMapper.writeValueAsString(updatedLocation);
@@ -129,7 +160,70 @@ public class LocationControllerTest {
         .andExpect(status().isOk());
   }
 
-  // todo: maybe have a test for updating a location w/ invalid input
+  @Test
+  public void shouldUpdateOnlyLocationLatitudeWhenGivenLatitude() throws Exception {
+    Location oldLocation = new Location("test-slug", 1.23f, 4.56f);
+    Mockito.when(locationRepositoryMock.findById(oldLocation.getSlug()))
+        .thenReturn(Optional.of(oldLocation));
+
+    Location newLocation = new Location("test-slug", 1f, null);
+
+    ObjectMapper objectMapper = new ObjectMapper();
+    String json = objectMapper.writeValueAsString(newLocation);
+
+    mockMvc.perform(put("/locations/{slug}", "test-slug")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(json))
+        .andExpect(status().isOk());
+
+    ArgumentCaptor<Location> argumentCaptor = ArgumentCaptor.forClass(Location.class);
+    verify(locationRepositoryMock, times(1)).save(argumentCaptor.capture());
+    Location updatedLocation = argumentCaptor.getValue();
+
+    Assert.assertEquals(Float.valueOf(1f), updatedLocation.getLatitude());
+    Assert.assertEquals(Float.valueOf(4.56f), updatedLocation.getLongitude());
+  }
+
+  @Test
+  public void shouldUpdateOnlyLocationLongitudeWhenGivenLongitude() throws Exception {
+    Location oldLocation = new Location("test-slug", 1.23f, 4.56f);
+    Mockito.when(locationRepositoryMock.findById(oldLocation.getSlug()))
+        .thenReturn(Optional.of(oldLocation));
+
+    Location newLocation = new Location("test-slug", null, 1f);
+
+    ObjectMapper objectMapper = new ObjectMapper();
+    String json = objectMapper.writeValueAsString(newLocation);
+
+    mockMvc.perform(put("/locations/{slug}", "test-slug")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(json))
+        .andExpect(status().isOk());
+
+    ArgumentCaptor<Location> argumentCaptor = ArgumentCaptor.forClass(Location.class);
+    verify(locationRepositoryMock, times(1)).save(argumentCaptor.capture());
+    Location updatedLocation = argumentCaptor.getValue();
+
+    Assert.assertEquals(Float.valueOf(1.23f), updatedLocation.getLatitude());
+    Assert.assertEquals(Float.valueOf(1f), updatedLocation.getLongitude());
+  }
+
+  @Test
+  public void shouldReturnBadRequestWhenUpdatingSlug() throws Exception {
+    Location oldLocation = new Location("test-slug", 1.23f, 4.56f);
+    Mockito.when(locationRepositoryMock.findById(oldLocation.getSlug()))
+        .thenReturn(Optional.of(oldLocation));
+
+    Location updatedLocation = new Location("updated-slug", 1f, null);
+
+    ObjectMapper objectMapper = new ObjectMapper();
+    String json = objectMapper.writeValueAsString(updatedLocation);
+
+    mockMvc.perform(put("/locations/{slug}", "test-slug")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(json))
+        .andExpect(status().isBadRequest());
+  }
 
   @Test
   public void shouldReturnLocationForecastWhenGivenLocation() throws Exception {
@@ -172,4 +266,22 @@ public class LocationControllerTest {
         .andExpect(status().isBadRequest());
   }
 
+  @Test
+  public void shouldReturnNoContentWhenDeletingExistingLocation() throws Exception {
+    Location location = new Location("test-slug", 1f, 1f);
+
+    Mockito.when(locationRepositoryMock.findById(location.getSlug()))
+        .thenReturn(Optional.of(location));
+
+    this.mockMvc.perform(delete("/locations/{slug}/", "test-slug"))
+        .andExpect(status().isNoContent());
+  }
+
+  @Test
+  public void shouldReturnNotFoundWhenDeletingNonExistingLocation() throws Exception {
+    Mockito.when(locationRepositoryMock.findById(anyString())).thenReturn(Optional.empty());
+
+    this.mockMvc.perform(delete("/locations/{slug}/", "non-existing-slug"))
+        .andExpect(status().isNotFound());
+  }
 }

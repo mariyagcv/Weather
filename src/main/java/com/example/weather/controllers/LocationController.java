@@ -33,7 +33,7 @@ public class LocationController {
   LocationService locationService;
 
   @GetMapping
-  public List<Location> findAll() {
+  public Iterable<Location> findAll() {
     return locationRepository.findAll();
   }
 
@@ -51,7 +51,8 @@ public class LocationController {
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   /**
-   * Creates a location and saves to repository
+   * Creates a location and saves it
+   *
    * @param slug A unique url-safe slug passed as a path variable
    * @param location A request with a location consisting of slug, latitude, and longitude
    * @throws ResponseStatusException BAD_REQUEST if the latitude and longitude in the body are null
@@ -67,7 +68,8 @@ public class LocationController {
   @PutMapping(value = "/{slug}")
   @ResponseStatus(HttpStatus.OK)
   /**
-   * Updates a location and saves to repository
+   * Updates a location and saves
+   *
    * @param slug A unique url-safe slug passed as a path variable
    * @param location A request with a location consisting of slug, latitude, and longitude
    * @throws ResponseStatusException BAD_REQUEST if slug value is different than the existing one
@@ -86,7 +88,6 @@ public class LocationController {
     }
 
     Location locationToUpdate = locationToUpdateOptional.get();
-    // todo: test
     if (location.getLatitude() != null) {
       locationToUpdate.setLatitude(location.getLatitude());
     }
@@ -101,6 +102,7 @@ public class LocationController {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   /**
    * Deletes a location
+   *
    * @param slug A unique url-safe slug passed as a path variable
    * @throws ResponseStatusException NOT_FOUND if the location to delete does not exist
    */
@@ -120,6 +122,7 @@ public class LocationController {
    * Returns a forecast for an existing location within a given range between start and end date.
    * The forecast returns as information the minimum and maximum temperatures for the dates, for which
    * the start date should be either today or in the present.
+   *
    * @param slug A unique url-safe slug passed as a path variable
    * @param startDate A start date for the date range of the forecast
    * @param endDate An end date for the date range of the forecast

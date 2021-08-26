@@ -15,6 +15,14 @@ public class LocationService {
   @Autowired
   ForecastApiService forecastApiService;
 
+  /**
+   * Obtain forecast for a particular location given a time range
+   *
+   * @param location
+   * @param startDate
+   * @param endDate
+   * @return
+   */
   public List<ForecastDto> getForecastByLocation(Location location, LocalDate startDate,
       LocalDate endDate) {
 

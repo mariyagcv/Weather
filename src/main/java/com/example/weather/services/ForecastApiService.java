@@ -65,7 +65,6 @@ public class ForecastApiService {
       listDtos = mapper.readValue(dataseries.toString(), new TypeReference<List<ForecastApiDto>>() {
       });
     } catch (JsonProcessingException e) {
-      // todo: throw exception
       e.printStackTrace();
     }
     return listDtos;
