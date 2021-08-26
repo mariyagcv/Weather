@@ -1,4 +1,4 @@
-package com.example.weather;
+package com.example.weather.controllers;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -27,7 +27,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -48,7 +47,6 @@ public class LocationControllerTest {
     Location location1 = new Location("test1", 1f, 1f);
     Location location2 = new Location("test2", 2f, 2f);
 
-    // todo: maybe should return Optional location to be consistent
     Mockito.when(locationRepositoryMock.findAll()).thenReturn(List.of(location1, location2));
 
     this.mockMvc.perform(get("/locations"))
@@ -87,7 +85,6 @@ public class LocationControllerTest {
 
   @Test
   public void shouldCreateLocationWhenValid() throws Exception {
-    // todo: fix
     Location location = new Location("test-slug", 1.23f, 4.56f);
 
     ObjectMapper objectMapper = new ObjectMapper();
@@ -97,11 +94,9 @@ public class LocationControllerTest {
         .thenReturn(Optional.of(location));
 
     this.mockMvc.perform(post("/locations")
-        .accept(MediaType.APPLICATION_JSON)
         .contentType(MediaType.APPLICATION_JSON)
         .content(json))
-        .andExpect(status().isCreated())
-        .andExpect(MockMvcResultMatchers.jsonPath("$.slug").value(location.getSlug()));
+        .andExpect(status().isCreated());
   }
 
   @Test
@@ -117,7 +112,6 @@ public class LocationControllerTest {
         .andExpect(status().isBadRequest());
   }
 
-  // todo: maybe check if I want to test invalid latitude and longitude
   @Test
   public void shouldUpdateLocationWhenValid() throws Exception {
     Location oldLocation = new Location("test-slug", 1.23f, 4.56f);
@@ -137,13 +131,12 @@ public class LocationControllerTest {
 
   // todo: maybe have a test for updating a location w/ invalid input
 
-  // todo: test when start_date is before current date
   @Test
   public void shouldReturnLocationForecastWhenGivenLocation() throws Exception {
 
-    Location location = new Location("testy", -3.3f, 5.555f);
-    LocalDate startDate = LocalDate.of(2021, 1, 1);
-    LocalDate endDate = LocalDate.of(2021, 1, 1);
+    Location location = new Location("test-slug", -3.3f, 5.555f);
+    LocalDate startDate = LocalDate.now();
+    LocalDate endDate = LocalDate.now().plusDays(1);
 
     ForecastDto forecastDto = new ForecastDto();
     forecastDto.date = LocalDate.of(2021, 1, 1);
@@ -165,6 +158,18 @@ public class LocationControllerTest {
         .andExpect(jsonPath("$[0].date").value(forecastDto.date.toString()))
         .andExpect(jsonPath("$[0].max-forecasted").value(forecastDto.maxForecasted))
         .andExpect(jsonPath("$[0].min-forecasted").value(forecastDto.minForecasted));
+  }
+
+  @Test
+  public void shouldReturnBadRequestWhenStartDateIsBeforeToday() throws Exception {
+    LocalDate startDateYesterday = LocalDate.now().minusDays(1);
+    LocalDate endDate = startDateYesterday.plusDays(1);
+
+    this.mockMvc.perform(
+        get("/locations/{slug}/forecast/", "test-slug")
+            .param("start_date", startDateYesterday.toString())
+            .param("end_date", endDate.toString()))
+        .andExpect(status().isBadRequest());
   }
 
 }

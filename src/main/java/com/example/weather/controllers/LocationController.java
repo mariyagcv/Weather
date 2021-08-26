@@ -41,7 +41,7 @@ public class LocationController {
   public Location findBySlug(@PathVariable("slug") String slug) {
     Optional<Location> location = locationRepository.findById(slug);
 
-    if(!location.isPresent()) {
+    if (!location.isPresent()) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND);
     }
 
@@ -50,10 +50,13 @@ public class LocationController {
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
-  public Location create(@Valid @RequestBody Location location) {
-    // todo: check if error should be thrown when giving it the same slug multiple times
-    // right now it overwrites
-    return locationRepository.save(location);
+  public void create(@Valid @RequestBody Location location) {
+    // todo: write test
+    if (location.getLatitude() == null || location.getLongitude() == null) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+          "Latitude and longitude cannot be null");
+    }
+    locationRepository.save(location);
   }
 
   @PutMapping(value = "/{slug}")
@@ -61,15 +64,24 @@ public class LocationController {
   public void update(@PathVariable("slug") String slug, @Valid @RequestBody Location location) {
     Optional<Location> locationToUpdateOptional = locationRepository.findById(slug);
 
-    if(!locationToUpdateOptional.isPresent()) {
+    if (!locationToUpdateOptional.isPresent()) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND);
     }
 
-    // todo: throw exception if trying to change the slug (e.g Unsupported operation)
+    // todo: test
+    if (location.getSlug() != null && slug != location.getSlug()) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+          "Location slug cannot be changed");
+    }
 
     Location locationToUpdate = locationToUpdateOptional.get();
-    locationToUpdate.setLatitude(location.getLatitude());
-    locationToUpdate.setLongitude(location.getLongitude());
+    // todo: test
+    if (location.getLatitude() != null) {
+      locationToUpdate.setLatitude(location.getLatitude());
+    }
+    if (location.getLongitude() != null) {
+      locationToUpdate.setLongitude(location.getLongitude());
+    }
 
     locationRepository.save(locationToUpdate);
   }
@@ -82,11 +94,18 @@ public class LocationController {
 
   @GetMapping("/{slug}/forecast")
   @ResponseStatus(HttpStatus.OK)
-  public List<ForecastDto> getForecastBySlug(@PathVariable("slug") String slug, @RequestParam ("start_date")
-  @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate, @RequestParam("end_date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+  public List<ForecastDto> getForecastBySlug(@PathVariable("slug") String slug,
+      @RequestParam("start_date")
+      @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+      @RequestParam("end_date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+    if (startDate.isBefore(LocalDate.now())) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+          "Start date should not be earlier than today");
+    }
+
     Optional<Location> location = locationRepository.findById(slug);
 
-    if(!location.isPresent()) {
+    if (!location.isPresent()) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND);
     }
 

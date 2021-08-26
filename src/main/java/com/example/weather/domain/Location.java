@@ -11,13 +11,13 @@ public class Location {
   @Pattern(regexp = "^[a-z0-9]+(?:-[a-z0-9]+)*$")
   // todo: maybe rename to id
   private String slug;
-  private float latitude;
-  private float longitude;
+  private Float latitude;
+  private Float longitude;
 
   public Location() {
   }
 
-  public Location(String slug, float latitude, float longitude) {
+  public Location(String slug, Float latitude, Float longitude) {
     this.slug = slug;
     this.latitude = latitude;
     this.longitude = longitude;
@@ -31,19 +31,19 @@ public class Location {
     this.slug = slug;
   }
 
-  public float getLatitude() {
+  public Float getLatitude() {
     return latitude;
   }
 
-  public void setLatitude(float latitude) {
+  public void setLatitude(Float latitude) {
     this.latitude = latitude;
   }
 
-  public float getLongitude() {
+  public Float getLongitude() {
     return longitude;
   }
 
-  public void setLongitude(float longitude) {
+  public void setLongitude(Float longitude) {
     this.longitude = longitude;
   }
 }
