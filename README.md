@@ -7,7 +7,7 @@ Users can perform CRUD operations on a location and get information about the mi
 
 ### Prerequisites
 The following is required to run the application:
-  * Java JDK
+  - Java JDK 11 or Docker
 
 ### Installation
 
@@ -15,22 +15,31 @@ The following is required to run the application:
 ```sh
 git clone git@github.com:mariyagcv/Weather.git
 ```
+### (Optional) Run app with Docker
+Build image locally:
 
-### Run the app
-#### Run without Docker
-    ./gradlew bootRun
-
-#### Run with Docker
     ./gradlew bootBuildImage
+    docker run -it -p8080:8080 weather:0.0.1-SNAPSHOT
+
+Or access directly from Dockerhub:
+
+    docker run -p8080:8080 mariyagcv/weather:latest
+    
+### Run the app
+    ./gradlew bootRun
 
 ### Run the tests
     ./gradlew test
 
+**Note:** When you run the tests, a test coverage report is generated under *build/reports/jacoco/index.html*
 
-### Access dynamic API documentation
-    http://localhost:8080/swagger-ui.html
 
 # REST API
+
+### Access dynamic API documentation
+You can access the API documentation at: 
+
+    http://localhost:8080/swagger-ui.html
 
 ## Create a new Location
 
@@ -91,7 +100,7 @@ git clone git@github.com:mariyagcv/Weather.git
 
     {"slug":"new-slug","latitude":23.1,"longitude":113.2}
 
-## Get forecast for Location within start and end date range when start date is not in the past
+## Get forecast for Location within start and end date range
 
 ### Request
 
@@ -139,7 +148,8 @@ git clone git@github.com:mariyagcv/Weather.git
     "error": "Bad Request",
     "message": "Start date should not be earlier than today",
     "path": "/locations/new-slug/forecast"
-    }
+}
+]
 
 
 ## Get a non-existent Location
