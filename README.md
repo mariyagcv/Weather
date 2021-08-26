@@ -3,6 +3,13 @@
 This is a weather API application that provides forecast information for particular locations, using the 7timer API.
 Users can perform CRUD operations on a location and get information about the minimum and maximum temperatures for a location within a given start and date range.
 
+### Built with
+<img src="https://img.shields.io/badge/Spring_Boot-F2F4F9?style=for-the-badge&logo=spring-boot" /> <img src="https://img.shields.io/badge/gradle-02303A?style=for-the-badge&logo=gradle&logoColor=white" /> 
+<img src="https://img.shields.io/badge/Junit5-25A162?style=for-the-badge&logo=junit5&logoColor=white" />
+<img src="https://img.shields.io/badge/Swagger-85EA2D?style=for-the-badge&logo=Swagger&logoColor=white" />
+<img src="https://img.shields.io/badge/Docker-2CA5E0?style=for-the-badge&logo=docker&logoColor=white"/> 
+
+
 ## Getting Started
 
 ### Prerequisites
@@ -31,8 +38,10 @@ Or access directly from Dockerhub:
 ### Run the tests
     ./gradlew test
 
-**Note:** When you run the tests, a test coverage report is generated under *build/reports/jacoco/index.html*
+**Note:** When you run the tests, a test coverage report is generated under build/reports/jacoco/index.html
 
+### Test coverage
+<img src="https://i.imgur.com/Pbxp8UB.png" />
 
 # REST API
 
