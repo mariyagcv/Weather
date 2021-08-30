@@ -1,44 +1,54 @@
 # Weather API application
 
-This is a weather API application that provides forecast information for particular locations, using
-the 7timer API. Users can perform CRUD operations on a location and get information about the
-minimum and maximum temperatures for a location within a given start and date range.
+This is a weather API application that provides forecast information for particular locations, using the 7timer API.
+Users can perform CRUD operations on a location and get information about the minimum and maximum temperatures for a location within a given start and date range.
+
+### Built with
+<img src="https://img.shields.io/badge/Spring_Boot-F2F4F9?style=for-the-badge&logo=spring-boot" /> <img src="https://img.shields.io/badge/gradle-02303A?style=for-the-badge&logo=gradle&logoColor=white" /> 
+<img src="https://img.shields.io/badge/Junit5-25A162?style=for-the-badge&logo=junit5&logoColor=white" />
+<img src="https://img.shields.io/badge/Swagger-85EA2D?style=for-the-badge&logo=Swagger&logoColor=white" />
+<img src="https://img.shields.io/badge/Docker-2CA5E0?style=for-the-badge&logo=docker&logoColor=white"/> 
+
 
 ## Getting Started
 
 ### Prerequisites
-
 The following is required to run the application:
-
-* Java JDK
+  - Java JDK 11 or Docker
 
 ### Installation
 
 1. Clone the repo
-
 ```sh
 git clone git@github.com:mariyagcv/Weather.git
 ```
-
-### Run the app
-
-#### Run without Docker
-
-    ./gradlew bootRun
-
-#### Run with Docker
+### (Optional) Run app with Docker
+Build image locally:
 
     ./gradlew bootBuildImage
+    docker run -it -p8080:8080 weather:0.0.1-SNAPSHOT
+
+Or access directly from Dockerhub:
+
+    docker run -p8080:8080 mariyagcv/weather:latest
+    
+### Run the app
+    ./gradlew bootRun
 
 ### Run the tests
-
     ./gradlew test
 
-### Access dynamic API documentation
+**Note:** When you run the tests, a test coverage report is generated under build/reports/jacoco/index.html
 
-    http://localhost:8080/swagger-ui.html
+### Test coverage
+<img src="https://i.imgur.com/Pbxp8UB.png" />
 
 # REST API
+
+### Access dynamic API documentation
+You can access the API documentation at: 
+
+    http://localhost:8080/swagger-ui.html
 
 ## Create a new Location
 
@@ -57,7 +67,7 @@ git clone git@github.com:mariyagcv/Weather.git
 ### Response
 
     HTTP/1.1 201 Created
-
+    
 ## Get list of Locations when not empty
 
 ### Request
@@ -84,6 +94,7 @@ git clone git@github.com:mariyagcv/Weather.git
     HTTP/1.1 200 OK
     [ ]
 
+
 ## Get an existing Location
 
 ### Request
@@ -98,7 +109,7 @@ git clone git@github.com:mariyagcv/Weather.git
 
     {"slug":"new-slug","latitude":23.1,"longitude":113.2}
 
-## Get forecast for Location within start and end date range when start date is not in the past
+## Get forecast for Location within start and end date range
 
 ### Request
 
@@ -146,7 +157,9 @@ git clone git@github.com:mariyagcv/Weather.git
     "error": "Bad Request",
     "message": "Start date should not be earlier than today",
     "path": "/locations/new-slug/forecast"
-    }
+}
+]
+
 
 ## Get a non-existent Location
 
@@ -157,7 +170,7 @@ git clone git@github.com:mariyagcv/Weather.git
     curl --location --request GET 'http://localhost:8080/locations/non-existent'
 
 ### Response
-
+    
     HTTP/1.1 404 Not Found
 
     {
@@ -203,6 +216,7 @@ git clone git@github.com:mariyagcv/Weather.git
 ### Response
 
     HTTP/1.1 400 Bad Request
+
 
 ## Delete a Location
 
