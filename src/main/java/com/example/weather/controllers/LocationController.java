@@ -1,12 +1,15 @@
 package com.example.weather.controllers;
 
 import com.example.weather.domain.Location;
+import com.example.weather.repositories.ForecastRepository;
 import com.example.weather.repositories.LocationRepository;
+import com.example.weather.services.ForecastService;
 import com.example.weather.services.LocationService;
 import com.example.weather.services.dto.ForecastDto;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import javax.transaction.Transactional;
 import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -24,13 +27,21 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 @RestController
+@Transactional
 @RequestMapping("/locations")
 public class LocationController {
 
   @Autowired
   LocationRepository locationRepository;
+
+  @Autowired
+  ForecastRepository forecastRepository;
+
   @Autowired
   LocationService locationService;
+
+  @Autowired
+  ForecastService forecastService;
 
   @GetMapping
   public Iterable<Location> findAll() {
@@ -62,7 +73,7 @@ public class LocationController {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
           "Latitude and longitude cannot be null");
     }
-    locationRepository.save(location);
+    locationService.createLocation(location);
   }
 
   @PutMapping(value = "/{slug}")
@@ -112,7 +123,7 @@ public class LocationController {
     if (!location.isPresent()) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND);
     }
-
+    forecastRepository.deleteAllByLocationSlug(slug);
     locationRepository.deleteById(slug);
   }
 
@@ -121,7 +132,7 @@ public class LocationController {
   /**
    * Returns a forecast for an existing location within a given range between start and end date.
    * The forecast returns as information the minimum and maximum temperatures for the dates, for which
-   * the start date should be either today or in the present.
+   * the start date should be after the creation date of the location.
    *
    * @param slug A unique url-safe slug passed as a path variable
    * @param startDate A start date for the date range of the forecast
@@ -133,18 +144,34 @@ public class LocationController {
       @RequestParam("start_date")
       @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
       @RequestParam("end_date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
-    if (startDate.isBefore(LocalDate.now())) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-          "Start date should not be earlier than today");
-    }
 
     Optional<Location> location = locationRepository.findById(slug);
 
     if (!location.isPresent()) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+          "Location doesn't exist");
     }
 
-    return locationService.getForecastByLocation(location.get(), startDate, endDate);
+    if (endDate.isBefore(startDate)) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+          "Start date should be before end date");
+    }
+
+    if (startDate.isBefore(location.get().getCreatedDate())) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+          "Start date should not be earlier than creation date of the location");
+    }
+
+    List<ForecastDto> forecastDtos = forecastService
+        .getForecastForLocation(location.get(), startDate, endDate);
+
+    if (forecastDtos.isEmpty()) {
+      throw new ResponseStatusException(HttpStatus.NO_CONTENT,
+          "The API returns a historical forecast for a location from the time it was added up until 6 days"
+              + "after the current date");
+    }
+
+    return forecastDtos;
   }
 
 }

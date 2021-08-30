@@ -1,33 +1,41 @@
 # Weather API application
 
-This is a weather API application that provides forecast information for particular locations, using the 7timer API.
-Users can perform CRUD operations on a location and get information about the minimum and maximum temperatures for a location within a given start and date range.
+This is a weather API application that provides forecast information for particular locations, using
+the 7timer API. Users can perform CRUD operations on a location and get information about the
+minimum and maximum temperatures for a location within a given start and date range.
 
 ## Getting Started
 
 ### Prerequisites
+
 The following is required to run the application:
-  * Java JDK
+
+* Java JDK
 
 ### Installation
 
 1. Clone the repo
+
 ```sh
 git clone git@github.com:mariyagcv/Weather.git
 ```
 
 ### Run the app
+
 #### Run without Docker
+
     ./gradlew bootRun
 
 #### Run with Docker
+
     ./gradlew bootBuildImage
 
 ### Run the tests
+
     ./gradlew test
 
-
 ### Access dynamic API documentation
+
     http://localhost:8080/swagger-ui.html
 
 # REST API
@@ -49,7 +57,7 @@ git clone git@github.com:mariyagcv/Weather.git
 ### Response
 
     HTTP/1.1 201 Created
-    
+
 ## Get list of Locations when not empty
 
 ### Request
@@ -75,7 +83,6 @@ git clone git@github.com:mariyagcv/Weather.git
 
     HTTP/1.1 200 OK
     [ ]
-
 
 ## Get an existing Location
 
@@ -141,7 +148,6 @@ git clone git@github.com:mariyagcv/Weather.git
     "path": "/locations/new-slug/forecast"
     }
 
-
 ## Get a non-existent Location
 
 ### Request
@@ -151,7 +157,7 @@ git clone git@github.com:mariyagcv/Weather.git
     curl --location --request GET 'http://localhost:8080/locations/non-existent'
 
 ### Response
-    
+
     HTTP/1.1 404 Not Found
 
     {
@@ -197,7 +203,6 @@ git clone git@github.com:mariyagcv/Weather.git
 ### Response
 
     HTTP/1.1 400 Bad Request
-
 
 ## Delete a Location
 

@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.example.weather.domain.Location;
 import com.example.weather.repositories.LocationRepository;
+import com.example.weather.services.ForecastService;
 import com.example.weather.services.LocationService;
 import com.example.weather.services.dto.ForecastDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -45,7 +47,10 @@ public class LocationControllerTest {
   LocationRepository locationRepositoryMock;
 
   @MockBean
-  LocationService locationService;
+  LocationService locationServiceMock;
+
+  @MockBean
+  ForecastService forecastServiceMock;
 
   @Test
   public void shouldReturnMultipleLocationsOnGetLocations() throws Exception {
@@ -180,8 +185,8 @@ public class LocationControllerTest {
     verify(locationRepositoryMock, times(1)).save(argumentCaptor.capture());
     Location updatedLocation = argumentCaptor.getValue();
 
-    Assert.assertEquals(Float.valueOf(1f), updatedLocation.getLatitude());
-    Assert.assertEquals(Float.valueOf(4.56f), updatedLocation.getLongitude());
+    Assertions.assertEquals(Float.valueOf(1f), updatedLocation.getLatitude());
+    Assertions.assertEquals(Float.valueOf(4.56f), updatedLocation.getLongitude());
   }
 
   @Test
@@ -204,8 +209,8 @@ public class LocationControllerTest {
     verify(locationRepositoryMock, times(1)).save(argumentCaptor.capture());
     Location updatedLocation = argumentCaptor.getValue();
 
-    Assert.assertEquals(Float.valueOf(1.23f), updatedLocation.getLatitude());
-    Assert.assertEquals(Float.valueOf(1f), updatedLocation.getLongitude());
+    Assertions.assertEquals(Float.valueOf(1.23f), updatedLocation.getLatitude());
+    Assertions.assertEquals(Float.valueOf(1f), updatedLocation.getLongitude());
   }
 
   @Test
@@ -231,6 +236,7 @@ public class LocationControllerTest {
     Location location = new Location("test-slug", -3.3f, 5.555f);
     LocalDate startDate = LocalDate.now();
     LocalDate endDate = LocalDate.now().plusDays(1);
+    location.setCreatedDate(startDate);
 
     ForecastDto forecastDto = new ForecastDto();
     forecastDto.date = LocalDate.of(2021, 1, 1);
@@ -242,7 +248,7 @@ public class LocationControllerTest {
 
     Mockito.when(locationRepositoryMock.findById("test-slug"))
         .thenReturn(java.util.Optional.of(location));
-    Mockito.when(locationService.getForecastByLocation(location, startDate, endDate))
+    Mockito.when(forecastServiceMock.getForecastForLocation(location, startDate, endDate))
         .thenReturn(listDto);
 
     this.mockMvc.perform(
@@ -255,13 +261,17 @@ public class LocationControllerTest {
   }
 
   @Test
-  public void shouldReturnBadRequestWhenStartDateIsBeforeToday() throws Exception {
-    LocalDate startDateYesterday = LocalDate.now().minusDays(1);
-    LocalDate endDate = startDateYesterday.plusDays(1);
+  public void shouldReturnBadRequestWhenStartDateIsBeforeCreatedDate() throws Exception {
+    Location location = new Location("test-slug", LocalDate.of(2021, 1, 1), 1f, 1f);
+    LocalDate oneDayBeforeCreated = location.getCreatedDate().minusDays(1);
+    LocalDate endDate = oneDayBeforeCreated.plusDays(1);
+
+    Mockito.when(locationRepositoryMock.findById(location.getSlug()))
+        .thenReturn(Optional.of(location));
 
     this.mockMvc.perform(
         get("/locations/{slug}/forecast/", "test-slug")
-            .param("start_date", startDateYesterday.toString())
+            .param("start_date", oneDayBeforeCreated.toString())
             .param("end_date", endDate.toString()))
         .andExpect(status().isBadRequest());
   }
