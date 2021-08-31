@@ -9,6 +9,7 @@ import org.springframework.data.repository.CrudRepository;
 public interface ForecastRepository extends CrudRepository<Forecast, Long> {
 
   List<Forecast> findAllByLocationSlug(String locationSlug);
+
   void deleteAllByLocationSlug(String locationSlug);
 
 }

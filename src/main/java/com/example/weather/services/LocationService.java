@@ -39,8 +39,6 @@ public class LocationService {
     return location;
   }
 
-  // todo: can be moved to application.properties
-
   /**
    * Invokes synchronisation of the forecast of all created locations on every 60000ms
    */

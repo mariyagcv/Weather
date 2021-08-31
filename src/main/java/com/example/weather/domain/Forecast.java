@@ -26,6 +26,7 @@ public class Forecast {
   /**
    * Creates a Forecast associated with a location, that has a date, minimum temperature forecasted,
    * and maximum temperature forecasted
+   *
    * @param location
    * @param date
    * @param minForecasted

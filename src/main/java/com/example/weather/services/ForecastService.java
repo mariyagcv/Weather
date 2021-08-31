@@ -68,8 +68,9 @@ public class ForecastService {
   }
 
   /**
-   * Synchronises forecast for the given location by calling an external API and obtaining
-   * the information
+   * Synchronises forecast for the given location by calling an external API and obtaining the
+   * information
+   *
    * @param location
    */
   public void synchroniseForecastForSingleLocation(Location location) {
