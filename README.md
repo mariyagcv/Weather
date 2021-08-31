@@ -2,6 +2,7 @@
 
 This is a weather API application that provides forecast information for particular locations, using the 7timer API.
 Users can perform CRUD operations on a location and get information about the minimum and maximum temperatures for a location within a given start and date range.
+The application also provides frequently refreshed data on historical forecasts from the time a location was created.
 
 ### Built with
 <img src="https://img.shields.io/badge/Spring_Boot-F2F4F9?style=for-the-badge&logo=spring-boot" /> <img src="https://img.shields.io/badge/gradle-02303A?style=for-the-badge&logo=gradle&logoColor=white" /> 
@@ -139,7 +140,7 @@ You can access the API documentation at:
     }
     ]
 
-## Get forecast for Location when start date is in the past
+## Get forecast for Location when start date is before the creation date of a location
 
 ### Request
 
@@ -155,10 +156,10 @@ You can access the API documentation at:
     "timestamp": "2021-08-26T11:34:19.648+00:00",
     "status": 400,
     "error": "Bad Request",
-    "message": "Start date should not be earlier than today",
+    "message": "Start date should not be earlier than creation date of the location",
     "path": "/locations/new-slug/forecast"
-}
-]
+    }
+
 
 
 ## Get a non-existent Location
@@ -230,4 +231,35 @@ You can access the API documentation at:
 
     HTTP/1.1 204 No Content
 
+
+## Testing historical forecast for locations 
+
+The h2 debugging console can be used to experiment with some queries to test the synchronisation and getting information about 
+locations created in the past.
+
+To do so, head to the following link and use the JDBC URL in application.properties if it's not specified by default
+    http://localhost:8080/h2-console/
+
+
+Some useful queries:
+
+    /* After doing a POST request to create a location, check the contents of the location and forecast */
+    SELECT * FROM Location;
+    SELECT * FROM Forecast;
+
+    /* Shift the created_date of a location to the past, shift forecast dates, and update with some example data, 
+    so you can test a historical GET request */
+    UPDATE Location
+    SET created_date = created_date - 3;
+    
+    UPDATE Forecast 
+    SET date = date - 3, max_forecasted = 5, min_forecasted = 1;
+
+    /* Select once again to confirm that the changes were successful */ 
+    SELECT * FROM Location;
+    SELECT * FROM Forecast;
+
+    /* After 1 minute, check the forecast table to see how the synchronisation has updated the values with recent data.
+    You should expect to see only the values from this day onwards to change, since the external API doesn't provide past data */
+    SELECT * FROM Forecast;
 
